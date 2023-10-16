@@ -4,14 +4,11 @@ namespace MinimalApi.Tests
     {
         [Fact]
         public async Task Test_HelloWorld()
-        {
-            
+        {            
             var client = new HttpClient();
             var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:7281/");
-
             
             var response = await client.SendAsync(request);
-
             
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseContent = await response.Content.ReadAsStringAsync();
