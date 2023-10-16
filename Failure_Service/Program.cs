@@ -29,12 +29,12 @@ app.MapGet("/events/archived", async (EventsDb db) => await db.Events.Where(t =>
 //Выводит событие по его id
 app.MapGet("/events/{id}", async (int id, EventsDb db) =>
     await db.Events.FindAsync(id)
-        is Event ev
+        is Events ev
             ? Results.Ok(ev)
             : Results.NotFound());
 
 //Добавляет новое событие
-app.MapPost("/events/register", async (Event ev, EventsDb db) =>
+app.MapPost("/events/register", async (Events ev, EventsDb db) =>
 {
     ev.IsArchived = ev.Timestamp < DateTime.Now.AddMonths(-1);
     db.Events.Add(ev);

@@ -1,17 +1,22 @@
+
+using Failure_Service;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System;
+using Microsoft.Extensions.Options;
+
 namespace MinimalApi.Tests
 {
     public class MinimalApiTests
     {
         [Fact]
         public async Task Test_HelloWorld()
-        {
-            
+        {            
             var client = new HttpClient();
             var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:7281/");
-
             
             var response = await client.SendAsync(request);
-
             
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseContent = await response.Content.ReadAsStringAsync();
@@ -24,13 +29,15 @@ namespace MinimalApi.Tests
             var request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:7281/events");            
             
             var response = await client.SendAsync(request);
-            EventsDb context = new();
-            List<Event> response2 = context.Events.ToList();
             
+            var context = new EventsDb();
+            var events = await context.Events.ToListAsync();
+            string eventsString = JsonConvert.SerializeObject(events);
+
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var Content = await response.Content.ReadAsStringAsync();
-            List<string> responseContent = new List<string>(Content.Split(','));
-            Assert.Equal(response2, responseContent);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            
+            Assert.Equal(eventsString, responseContent);
         }
     }
 }
