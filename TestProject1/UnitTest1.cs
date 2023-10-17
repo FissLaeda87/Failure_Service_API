@@ -30,7 +30,7 @@ namespace MinimalApi.Tests
             
             var response = await client.SendAsync(request);
             
-            var context = new EventsDb();
+            var context = new EventsDb();            
             var events = await context.Events.ToListAsync();
             string eventsString = JsonConvert.SerializeObject(events);
 

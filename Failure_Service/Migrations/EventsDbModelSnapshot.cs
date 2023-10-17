@@ -17,7 +17,7 @@ namespace Failure_Service.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.12");
 
-            modelBuilder.Entity("Failure_Service.Event", b =>
+            modelBuilder.Entity("Failure_Service.Events", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
