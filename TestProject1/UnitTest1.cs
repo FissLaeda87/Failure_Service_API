@@ -20,7 +20,7 @@ namespace MinimalApi.Tests
             
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var responseContent = await response.Content.ReadAsStringAsync();
-            Assert.Equal("Hello World!", responseContent);
+            Assert.Equal("Welcome to API for checking the health of your web services!\nPlease enter in the address bar: \".../swagger\" to check the service", responseContent);
         }
         [Fact]
         public async Task Test_Events()

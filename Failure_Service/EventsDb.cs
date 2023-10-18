@@ -11,7 +11,7 @@ namespace Failure_Service
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=C:\\Users\\makus\\source\\repos\\Failure_Service_API\\Failure_Service\\events.db");
+            optionsBuilder.UseSqlite("Data Source=C:\\Users\\baliv\\Desktop\\Новая папка\\Failure_Service\\events.db");
         }       
     }
 }
