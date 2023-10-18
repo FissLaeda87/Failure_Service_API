@@ -1,5 +1,8 @@
+using System.Text.Json.Nodes;
 using Failure_Service;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.OpenApi;
+using Newtonsoft.Json;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,31 +20,54 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-var context = new EventsDb();
-var events = await context.Events.ToListAsync();
 
-app.MapGet("/", () => events);
+app.MapGet("/", () => "Welcome to API for checking the health of your web services!\nPlease enter in the address bar: \".../swagger\" to check the service");
 
-//Âûäàåò âñå çàðåãèñòðèðîâàííûå ñîáûòèÿ
+//ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÑ‚ Ð¸Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸ÑŽ Ð¾Ð±Ð¾ Ð²ÑÐµÑ… ÑÐ¾Ð±Ñ‹Ñ‚Ð¸ÑÑ…
 app.MapGet("/events", async (EventsDb db) => await db.Events.ToListAsync());
 
-//Âûäàåò ñîáûòèÿ, ïåðåäàííûå â àðõèâ
-app.MapGet("/events/archived", async (EventsDb db) => await db.Events.Where(t => t.isArchived).ToListAsync());
+//ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÑ‚ Ð¸Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸ÑŽ Ð¾ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸ÑÑ…, ÑƒÑˆÐµÐ´ÑˆÐ¸Ñ… Ð² Ð°Ñ€Ñ…Ð¸Ð²
+app.MapGet("/events/archived", async (EventsDb db) =>
+{
+    foreach (Event ev in db.Events)
+    {
+        ev.IsArchived = ev.Timestamp < DateTime.Now.AddMonths(-1);
+        await db.SaveChangesAsync();
+    }
+    await db.Events.Where(t => t.IsArchived).ToListAsync();
+});
+    
 
-//Âûâîäèò ñîáûòèå ïî åãî id
+//ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÑ‚ Ð¸Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸ÑŽ Ð¾ ÑÐ¾Ð±Ñ‹Ñ‚Ð¸Ð¸ Ð¿Ð¾ id
 app.MapGet("/events/{id}", async (int id, EventsDb db) =>
     await db.Events.FindAsync(id)
-        is Events ev
+        is Event ev
             ? Results.Ok(ev)
             : Results.NotFound());
 
-//Äîáàâëÿåò íîâîå ñîáûòèå
-app.MapPost("/events/register", async (Events ev, EventsDb db) =>
+//Ð—Ð°Ð½Ð¾ÑÐ¸Ñ‚ Ð¸Ð½Ñ„Ð¾Ñ€Ð¼Ð°Ñ†Ð¸ÑŽ Ð¾ ÑÐµÑ€Ð²Ð¸ÑÐµ
+app.MapPost("/events/register", async (HttpContext query, EventsDb db) =>
 {
-    ev.isArchived = ev.timestamp < DateTime.Now.AddMonths(-1);
+    using var reader = new StreamReader(query.Request.Body);
+    var requestBody = await reader.ReadToEndAsync();
+    var text = JsonConvert.SerializeObject(requestBody);
+    var jsonObj = JsonObject.Parse(text);
+    string? errorMessage = jsonObj["errorMessage"]?.ToString();
+    var statusCode = (int)jsonObj["statusCode"];
+    var host = query.Request.Host.Host;
+    var ev = new Event
+    {
+        Status = statusCode.ToString(),
+        Timestamp = DateTime.Now,
+        IsArchived = false,
+        Name = host,
+        Message = errorMessage
+        
+    };
+
     db.Events.Add(ev);
     await db.SaveChangesAsync();
-    return Results.Created($"/events/register/{ev.id}", ev);
+    return Results.Created($"/events/register/{ev.Id}", ev);
 });
 
 app.Run();
